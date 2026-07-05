@@ -1,0 +1,18 @@
+Using EAS CLI without version control system is not recommended, use this mode only if you know what you are doing.
+Failed to get Git root path with `git rev-parse --show-toplevel`. Error: spawn git ENOENT
+Falling back to using current working directory as project root.
+You can set `EAS_PROJECT_ROOT` environment variable to let eas-cli know where your project is located.
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+Environment variables with visibility "Plain text" and "Sensitive" loaded from the "production" environment on EAS: EXPO_PUBLIC_SUPABASE_ANON_KEY, EXPO_PUBLIC_SUPABASE_URL.
+
+Failed to read the app config from the project using "npx expo config" command: npx expo config --json --type introspect exited with non-zero code: 1.
+Falling back to the version of "@expo/config" shipped with the EAS CLI.
+- Incrementing buildNumber from 33 to 34.\ Incrementing buildNumber from 33 to 34.√ Incremented buildNumber from 33 to 34.
+
+
+ios.buildNumber field in app config is ignored when version source is set to remote, but this value will still be in the manifest available via expo-constants. It's recommended to remove this value from app config.
+√ Using remote iOS credentials (Expo server)
+
+If you provide your Apple account credentials we will be able to generate all necessary build credentials and fully validate them.
+This is optional, but without Apple account access you will need to provide all the missing values manually and we can only run minimal validation on them.
+[?25l[2K[1G[36m?[39m [1mDo you want to log in to your Apple account?[22m [90m»[39m [90m(Y/n)[39m

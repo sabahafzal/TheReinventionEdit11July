@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "The Reinvention Edit",
+    "slug": "the-reinvention-edit",
+    "version": "1.0.5",
+    "orientation": "portrait",
+    "icon": "./assets/Logo/TREHvid.png",
+    "userInterfaceStyle": "light",
+    "scheme": "reinventionedit",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.reinventionedit.app",
+      "buildNumber": "33",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "The Reinvention Edit uses the camera so you can take or update your profile photo.",
+        "NSCalendarsUsageDescription": "The Reinvention Edit exports your roadmap tasks to your calendar to help you stay on schedule.",
+        "NSPhotoLibraryUsageDescription": "The Reinvention Edit needs photo library access so you can upload a profile picture or inspiration images.",
+        "NSPhotoLibraryAddUsageDescription": "The Reinvention Edit may save images to your photo library when you export or share your plans or reflections.",
+        "NSUserNotificationsUsageDescription": "The Reinvention Edit sends reminders to help you stay consistent with your roadmap tasks."
+      }
+    },
+
+    "android": {
+      "package": "com.reinventionedit.app",
+      "versionCode": 10,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Logo/TREHvid.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "READ_CALENDAR", "WRITE_CALENDAR",
+        "VIBRATE"
+      ]
+    },
+
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+
+    "plugins": [
+      "react-native-iap",
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0"
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/Logo/TREHvid.png",
+          "color": "#D6A5D2"
+        }
+      ]
+    ],
+
+    "extra": {
+      "eas": {
+        "projectId": "b5c6e905-b69f-4f77-8e6d-46a513ae77cd"
+      }
+    }
+  }
+}
