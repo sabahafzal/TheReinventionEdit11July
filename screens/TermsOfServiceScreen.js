@@ -11,7 +11,6 @@ import {
   Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, radii, shadows } from './theme';
 
 // ─── Content ──────────────────────────────────────────────────────────────────
@@ -112,7 +111,7 @@ export default function TermsOfServiceScreen() {
             style={styles.backBtn}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="chevron-back" size={22} color={colors.ink} />
+            <Text style={{ fontSize: 22, color: colors.ink }}>‹</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Terms of Service</Text>
           <View style={styles.backBtn} />
@@ -136,7 +135,6 @@ export default function TermsOfServiceScreen() {
 
         {/* ── Intro ── */}
         <View style={styles.introCard}>
-          <Ionicons name="document-text-outline" size={20} color={colors.deepRose} style={{ marginBottom: spacing.xs }} />
           <Text style={styles.introText}>
             Please read these Terms carefully before using the App. They set out your rights and responsibilities as a user.
           </Text>
@@ -155,15 +153,13 @@ export default function TermsOfServiceScreen() {
         <View style={styles.footerCard}>
           <Text style={styles.footerLabel}>Related documents</Text>
           <TouchableOpacity style={styles.footerLink} onPress={handlePrivacyPolicy}>
-            <Ionicons name="shield-checkmark-outline" size={16} color={colors.deepRose} />
             <Text style={styles.footerLinkText}>Privacy Policy</Text>
-            <Ionicons name="chevron-forward" size={14} color={colors.champagne} style={{ marginLeft: 'auto' }} />
+            <Text style={styles.footerChevron}>›</Text>
           </TouchableOpacity>
           <View style={styles.footerDivider} />
           <TouchableOpacity style={styles.footerLink} onPress={handleEmail}>
-            <Ionicons name="mail-outline" size={16} color={colors.deepRose} />
             <Text style={styles.footerLinkText}>{CONTACT_EMAIL}</Text>
-            <Ionicons name="chevron-forward" size={14} color={colors.champagne} style={{ marginLeft: 'auto' }} />
+            <Text style={styles.footerChevron}>›</Text>
           </TouchableOpacity>
         </View>
 
@@ -308,6 +304,11 @@ const styles = StyleSheet.create({
     ...typography.actionLabel,
     color: colors.ink,
     flex: 1,
+  },
+  footerChevron: {
+    fontSize: 18,
+    color: colors.champagne,
+    marginLeft: 'auto',
   },
   footerDivider: {
     height: 1,
