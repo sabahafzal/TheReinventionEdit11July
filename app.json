@@ -20,6 +20,7 @@
       "buildNumber": "33",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "SentryDSN": "https://beab71e11cd91a740626271fa86cc054@o4511717414862848.ingest.de.sentry.io/4511717419057232",
         "NSCameraUsageDescription": "The Reinvention Edit uses the camera so you can take or update your profile photo.",
         "NSCalendarsUsageDescription": "The Reinvention Edit exports your roadmap tasks to your calendar to help you stay on schedule.",
         "NSPhotoLibraryUsageDescription": "The Reinvention Edit needs photo library access so you can upload a profile picture or inspiration images.",
@@ -55,7 +56,11 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "16.0"
+            "deploymentTarget": "16.0",
+            "newArchEnabled": false
+          },
+          "android": {
+            "newArchEnabled": false
           }
         }
       ],
@@ -72,7 +77,8 @@
           "organization": "the-reinvention-edit",
           "project": "react-native"
         }
-      ]
+      ],
+      "./plugins/withDumpModulesProvider.cjs"
     ],
 
     "extra": {

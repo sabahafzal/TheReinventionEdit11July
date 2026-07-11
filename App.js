@@ -1,24 +1,32 @@
 // App.js
 import * as Sentry from '@sentry/react-native';
 
-// Sentry MUST be initialized before any other imports that could throw —
-// this is what lets us catch crashes that happen during module load,
-// which React error boundaries structurally cannot catch (they only
-// catch errors that happen during render, after the app has already
-// started running). This is likely how we finally see the real cause
-// of the white screen if it's a native/module-load crash.
-Sentry.init({
-  dsn: 'https://beab71e11cd91a740626271fa86cc054@o4511717414862848.ingest.de.sentry.io/4511717419057232',
-  debug: false,
-  tracesSampleRate: 1.0,
-  // Captures native iOS/Android crashes in addition to JS errors.
-  enableNative: true,
-});
+// Sentry.init() now lives in index.js — the true entry point — since Babel
+// hoists all `import` statements above other top-level code within a file,
+// so init'ing it here did NOT guarantee it ran before this file's own
+// imports (AuthStack -> lib/supabase.ts, etc.) were evaluated.
 
-// Diagnostic checkpoint 1: fires even without a crash, as long as JS module
-// evaluation reaches this line. If this never appears in Sentry, the app
-// isn't getting this far in JS at all — points to a native-level issue.
-Sentry.captureMessage('[Checkpoint 1] Sentry initialized, App.js module evaluating');
+// Diagnostic checkpoint 1: confirms App.js itself is being evaluated
+// (should now reliably fire after Checkpoint 0 in index.js).
+Sentry.captureMessage('[Checkpoint 1] App.js module evaluating');
+
+import * as ExpoSplashScreen from 'expo-splash-screen';
+
+// ROOT CAUSE FIX: expo-font's useFonts() hook internally calls
+// SplashScreen.preventAutoHideAsync(), which tells the native splash screen
+// to stay visible while fonts load. But nothing in this codebase ever
+// called SplashScreen.hideAsync() to dismiss it again — so the native splash
+// (solid white, per app.json's splash.backgroundColor: "#ffffff") stayed on
+// screen forever, with the real app running invisibly underneath. No crash,
+// no error, because nothing was actually wrong at the JS level — the splash
+// was just never told to go away. Calling preventAutoHideAsync() explicitly
+// here (redundant with useFonts' internal call, but harmless and clearer)
+// and hideAsync() once the app is truly ready (see the useEffect below)
+// fixes this.
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {
+  // Fails harmlessly if the splash was already hidden or auto-hide was
+  // already prevented elsewhere — never let this block app startup.
+});
 
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -180,13 +188,17 @@ async function loadSafeSession() {
 }
 
 function App() {
-  // Diagnostic checkpoint 3: fires on every render, confirms React reached
-  // the point of actually rendering the App component.
-  Sentry.captureMessage('[Checkpoint 3] App() component function called');
-
   const [session, setSession] = useState(null);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [forceReady, setForceReady] = useState(false);
+
+  // Diagnostic checkpoint 3: confirms React actually mounted the App
+  // component. Runs once on mount only — Sentry.captureMessage() must never
+  // be called directly in a component body, since that fires on every
+  // re-render and can spam the dashboard / cause performance issues.
+  useEffect(() => {
+    Sentry.captureMessage('[Checkpoint 3] App() component mounted');
+  }, []);
 
   // fontError ensures a failed font load never blocks the app indefinitely
   const [fontsLoaded, fontError] = useFonts({
@@ -280,6 +292,16 @@ function App() {
   // fontsReady is true if fonts loaded successfully OR if loading errored —
   // either way we must not block the app. The system serif fallback will apply.
   const fontsReady = fontsLoaded || !!fontError;
+
+  // ROOT CAUSE FIX (continued): dismiss the native splash the moment we're
+  // ready to render real content — the exact same condition that stops
+  // rendering the custom <SplashScreen /> JS fallback below. Without this
+  // call, the native splash (solid white) stays on screen forever.
+  useEffect(() => {
+    if ((fontsReady && sessionChecked) || forceReady) {
+      ExpoSplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsReady, sessionChecked, forceReady]);
 
   if ((!fontsReady || !sessionChecked) && !forceReady) {
     return <SplashScreen />;
