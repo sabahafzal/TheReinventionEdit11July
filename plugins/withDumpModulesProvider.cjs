@@ -33,7 +33,16 @@ const withDumpModulesProvider = (config) => {
       'else\n' +
       '  echo "=== DIAGNOSTIC: no file found matching that name ==="\n' +
       'fi\n' +
-      'echo "=== DIAGNOSTIC: end of ExpoModulesProvider.swift dump ==="\n';
+      'echo "=== DIAGNOSTIC: end of ExpoModulesProvider.swift dump ==="\n' +
+      'echo "=== DIAGNOSTIC: searching for AppDelegate.swift ==="\n' +
+      'FOUND_DELEGATE=$(find "${SRCROOT}" -iname "AppDelegate.swift" -not -path "*/Pods/*" | head -n 1)\n' +
+      'echo "=== DIAGNOSTIC: found path: $FOUND_DELEGATE ==="\n' +
+      'if [ -n "$FOUND_DELEGATE" ]; then\n' +
+      '  cat "$FOUND_DELEGATE"\n' +
+      'else\n' +
+      '  echo "=== DIAGNOSTIC: no AppDelegate.swift found ==="\n' +
+      'fi\n' +
+      'echo "=== DIAGNOSTIC: end of AppDelegate.swift dump ==="\n';
 
     xcodeProject.addBuildPhase(
       [],
