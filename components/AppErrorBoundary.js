@@ -10,6 +10,7 @@
 // select device → open logs). The error and component stack will appear there.
 
 import React from 'react';
+import * as Sentry from '@sentry/react-native';
 import SplashScreen from '../screens/SplashScreen';
 
 export default class AppErrorBoundary extends React.Component {
@@ -27,6 +28,12 @@ export default class AppErrorBoundary extends React.Component {
     // any crash reporting tool (Sentry, Bugsnag, etc.) if you add one later.
     console.error('[AppErrorBoundary] Render error:', error?.message || error);
     console.error('[AppErrorBoundary] Component stack:', info?.componentStack);
+
+    // Sends this to your Sentry dashboard, tagged with the component stack
+    // so you can see exactly which screen/component crashed.
+    Sentry.captureException(error, {
+      contexts: { react: { componentStack: info?.componentStack } },
+    });
   }
 
   render() {

@@ -1,4 +1,25 @@
 // App.js
+import * as Sentry from '@sentry/react-native';
+
+// Sentry MUST be initialized before any other imports that could throw —
+// this is what lets us catch crashes that happen during module load,
+// which React error boundaries structurally cannot catch (they only
+// catch errors that happen during render, after the app has already
+// started running). This is likely how we finally see the real cause
+// of the white screen if it's a native/module-load crash.
+Sentry.init({
+  dsn: 'https://beab71e11cd91a740626271fa86cc054@o4511717414862848.ingest.de.sentry.io/4511717419057232',
+  debug: false,
+  tracesSampleRate: 1.0,
+  // Captures native iOS/Android crashes in addition to JS errors.
+  enableNative: true,
+});
+
+// Diagnostic checkpoint 1: fires even without a crash, as long as JS module
+// evaluation reaches this line. If this never appears in Sentry, the app
+// isn't getting this far in JS at all — points to a native-level issue.
+Sentry.captureMessage('[Checkpoint 1] Sentry initialized, App.js module evaluating');
+
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,6 +43,7 @@ import { initIAP, cleanupIAP, syncEntitlement } from './lib/iap';
 const AppNavigator = lazy(() => import('./navigation/AppNavigator'));
 
 console.log('[App] Module load OK');
+Sentry.captureMessage('[Checkpoint 2] All top-level imports finished — module load complete');
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -157,7 +179,11 @@ async function loadSafeSession() {
   }
 }
 
-export default function App() {
+function App() {
+  // Diagnostic checkpoint 3: fires on every render, confirms React reached
+  // the point of actually rendering the App component.
+  Sentry.captureMessage('[Checkpoint 3] App() component function called');
+
   const [session, setSession] = useState(null);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [forceReady, setForceReady] = useState(false);
@@ -174,6 +200,7 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setForceReady(true);
+      Sentry.captureMessage('[Checkpoint 4] forceReady timeout fired (3s elapsed)');
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -275,3 +302,7 @@ export default function App() {
     </AppErrorBoundary>
   );
 }
+
+// Sentry.wrap adds automatic breadcrumbs (navigation, touches) leading up to
+// a crash, so the report shows what the user did right before the white screen.
+export default Sentry.wrap(App);

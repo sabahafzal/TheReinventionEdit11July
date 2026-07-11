@@ -65,6 +65,13 @@
           "icon": "./assets/Logo/TREHvid.png",
           "color": "#D6A5D2"
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "the-reinvention-edit",
+          "project": "react-native"
+        }
       ]
     ],
 

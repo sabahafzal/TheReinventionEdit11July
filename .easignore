@@ -1,0 +1,23 @@
+node_modules
+.git
+.expo
+dist
+web-build
+
+# Native build artifacts (EAS regenerates these on the cloud builder)
+android/build
+android/app/build
+android/.gradle
+android/.idea
+ios/Pods
+ios/build
+ios/DerivedData
+
+# Debug/log files
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# OS files
+.DS_Store
