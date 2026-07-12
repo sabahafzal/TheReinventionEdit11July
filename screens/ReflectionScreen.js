@@ -63,14 +63,10 @@ const NEWCITY_TRACK_KEY = 'newCityTrack';
 const NEWCITY_JOB_KEY = 'newCityJobStatus';
 const PHYSICAL_TRACK_KEY = 'physicalGlowUpTrack';
 
-// Set a simple handler (safe to call multiple times)
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
+// Notification handler is set once, in App.js — the true entry point.
+// Setting it again here (with the outdated shouldShowAlert shape) used to
+// silently overwrite that correct handler the moment this lazy-loaded
+// screen was opened, breaking notification banners app-wide from then on.
 
 const VALID_ROADMAP_KEYS = new Set([
   'new_city',

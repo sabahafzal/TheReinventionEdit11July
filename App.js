@@ -200,9 +200,15 @@ function App() {
     Sentry.captureMessage('[Checkpoint 3] App() component mounted');
   }, []);
 
-  // fontError ensures a failed font load never blocks the app indefinitely
-  const fontsLoaded = true;
-const fontError = null;
+  // Load the actual bundled brand fonts. fontError ensures a failed font
+  // load never blocks the app indefinitely — fontsReady below treats a
+  // load error the same as success so the system serif fallback just
+  // applies instead of hanging the splash screen forever.
+  const [fontsLoaded, fontError] = useFonts({
+    PlayfairDisplay: require('./assets/fonts/PlayfairDisplay-Regular.ttf'),
+    PlayfairDisplay_Italic: require('./assets/fonts/PlayfairDisplay-Italic.ttf'),
+    DancingScript: require('./assets/fonts/DancingScript-Regular.ttf'),
+  });
 
   // Hard ceiling: if fonts or session check take longer than 3s, render anyway.
   // Protects against hangs on review devices with no prior app state.

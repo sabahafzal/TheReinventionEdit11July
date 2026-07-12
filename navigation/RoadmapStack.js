@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import RoadmapScreen from '../screens/RoadmapScreen';
 import WeeksOverviewScreen from '../screens/WeeksOverviewScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
-import CongratsScreen from '../screens/CongratsScreen';
 
 import RoadmapPlanScreen from '../screens/RoadmapPlanScreen';
 
@@ -50,11 +49,6 @@ export default function RoadmapStack() {
         options={{ headerShown: false }}
       />
 
-<Stack.Screen
-  name="Congrats"
-  component={CongratsScreen}
-  options={{ headerShown: false }}
-/>
       {/* Themes (optional for now) */}
       <Stack.Screen name="NewCityThemes" component={NewCityThemesScreen} />
       <Stack.Screen name="TechSwitchThemes" component={TechSwitchThemesScreen} />
