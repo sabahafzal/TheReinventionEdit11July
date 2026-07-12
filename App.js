@@ -201,11 +201,8 @@ function App() {
   }, []);
 
   // fontError ensures a failed font load never blocks the app indefinitely
-  const [fontsLoaded, fontError] = useFonts({
-    DancingScript: require('./assets/fonts/DancingScript-Regular.ttf'),
-    PlayfairDisplay: require('./assets/fonts/PlayfairDisplay-Regular.ttf'),
-    PlayfairDisplay_Italic: require('./assets/fonts/PlayfairDisplay-Italic.ttf'),
-  });
+  const fontsLoaded = true;
+const fontError = null;
 
   // Hard ceiling: if fonts or session check take longer than 3s, render anyway.
   // Protects against hangs on review devices with no prior app state.

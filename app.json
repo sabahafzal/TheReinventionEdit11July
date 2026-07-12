@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.reinventionedit.app",
-      "buildNumber": "33",
+      "buildNumber": "58",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "SentryDSN": "https://beab71e11cd91a740626271fa86cc054@o4511717414862848.ingest.de.sentry.io/4511717419057232",
@@ -49,7 +49,6 @@
     },
 
     "plugins": [
-      "react-native-iap",
       "expo-asset",
       "expo-font",
       [

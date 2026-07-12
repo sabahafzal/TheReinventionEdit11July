@@ -1,4 +1,4 @@
-// plugins/withDumpModulesProvider.js
+// plugins/withDumpModulesProvider.cjs
 //
 // DIAGNOSTIC-ONLY config plugin. Adds an Xcode "Run Script" build phase that
 // prints the full contents of the generated ExpoModulesProvider.swift file
@@ -14,7 +14,7 @@
 // Remove this plugin once the root cause is confirmed — it's not meant to
 // stay in the project long-term, it's purely to get visibility into one
 // specific file for one specific build.
-const { withXcodeProject } = require('@expo/config-plugins');
+const { withXcodeProject } = require('expo/config-plugins');
 
 const withDumpModulesProvider = (config) => {
   return withXcodeProject(config, (config) => {
