@@ -13,6 +13,7 @@
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": ["**/*"],
+    "newArchEnabled": false,
 
     "ios": {
       "supportsTablet": false,
@@ -55,11 +56,7 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "16.0",
-            "newArchEnabled": false
-          },
-          "android": {
-            "newArchEnabled": false
+            "deploymentTarget": "16.0"
           }
         }
       ],
@@ -76,8 +73,7 @@
           "organization": "the-reinvention-edit",
           "project": "react-native"
         }
-      ],
-      "./plugins/withDumpModulesProvider.cjs"
+      ]
     ],
 
     "extra": {
