@@ -1,14 +1,15 @@
 // App.js
 import * as Sentry from '@sentry/react-native';
+import { logCheckpoint, logError } from './lib/errorLog';
 
 // Sentry.init() now lives in index.js — the true entry point — since Babel
 // hoists all `import` statements above other top-level code within a file,
 // so init'ing it here did NOT guarantee it ran before this file's own
 // imports (AuthStack -> lib/supabase.ts, etc.) were evaluated.
 
-// Diagnostic checkpoint 1: confirms App.js itself is being evaluated
-// (should now reliably fire after Checkpoint 0 in index.js).
-Sentry.captureMessage('[Checkpoint 1] App.js module evaluating');
+// Diagnostic checkpoint: confirms App.js itself is being evaluated
+// (should now reliably fire after the checkpoints in index.js).
+logCheckpoint('[2] App.js module evaluating');
 
 import * as ExpoSplashScreen from 'expo-splash-screen';
 
@@ -50,8 +51,7 @@ import { initIAP, cleanupIAP, syncEntitlement } from './lib/iap';
 // executed the first time a session exists — never on the auth/unauthenticated path.
 const AppNavigator = lazy(() => import('./navigation/AppNavigator'));
 
-console.log('[App] Module load OK');
-Sentry.captureMessage('[Checkpoint 2] All top-level imports finished — module load complete');
+logCheckpoint('[3] All top-level imports finished — module load complete');
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -187,35 +187,69 @@ async function loadSafeSession() {
   }
 }
 
-function App() {
+// ─── AppInner ───────────────────────────────────────────────────────────────
+// All the actual startup logic (fonts, session, navigation) lives here, as a
+// CHILD of AppErrorBoundary (see AppRoot below) rather than alongside it.
+//
+// This split matters: React error boundaries only catch errors thrown by
+// their DESCENDANTS during render — never errors thrown by the boundary's
+// own sibling code or by the component that renders the boundary. In the
+// previous version of this file, AppErrorBoundary only wrapped the
+// <NavigationContainer> deep inside App()'s return statement — so if
+// useFonts() (below) threw synchronously, e.g. "Cannot find native module
+// 'ExpoFontLoader'", that error happened in App()'s function body BEFORE
+// the return statement was ever reached, meaning AppErrorBoundary never
+// even got a chance to catch it. React had no boundary to hand the error
+// to, so it propagated all the way out — which matches exactly what Sentry
+// reported: a fatal JS error that also surfaced as a native JSI C++
+// exception, with no [AppErrorBoundary] log line ever appearing.
+//
+// Now that the boundary wraps AppInner from the OUTSIDE (in AppRoot), any
+// synchronous throw from useFonts() or anywhere else in this component's
+// render will be caught, logged with full context, and shown via a
+// dependency-free fallback screen instead of crashing the whole app.
+function AppInner() {
   const [session, setSession] = useState(null);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [forceReady, setForceReady] = useState(false);
 
-  // Diagnostic checkpoint 3: confirms React actually mounted the App
-  // component. Runs once on mount only — Sentry.captureMessage() must never
-  // be called directly in a component body, since that fires on every
-  // re-render and can spam the dashboard / cause performance issues.
+  // Diagnostic checkpoint: confirms React actually mounted AppInner.
+  // Runs once on mount only — never call logCheckpoint directly in a
+  // component body, since that fires on every re-render.
   useEffect(() => {
-    Sentry.captureMessage('[Checkpoint 3] App() component mounted');
+    logCheckpoint('[4] AppInner mounted');
   }, []);
 
   // Load the actual bundled brand fonts. fontError ensures a failed font
   // load never blocks the app indefinitely — fontsReady below treats a
   // load error the same as success so the system serif fallback just
   // applies instead of hanging the splash screen forever.
+  //
+  // NOTE: if the native ExpoFontLoader module isn't linked into this build,
+  // this call throws SYNCHRONOUSLY (it isn't a promise rejection, so
+  // fontError below can't catch it) — that throw is what AppErrorBoundary
+  // in AppRoot is now positioned to catch. See index.js checkpoint [0c] for
+  // a native-module presence check that runs even earlier, before this
+  // line is reached.
+  logCheckpoint('[5] Calling useFonts()');
   const [fontsLoaded, fontError] = useFonts({
     PlayfairDisplay: require('./assets/fonts/PlayfairDisplay-Regular.ttf'),
     PlayfairDisplay_Italic: require('./assets/fonts/PlayfairDisplay-Italic.ttf'),
     DancingScript: require('./assets/fonts/DancingScript-Regular.ttf'),
   });
 
+  useEffect(() => {
+    if (fontError) {
+      logError('[5a] useFonts reported a load error (non-fatal — falling back to system font)', fontError);
+    }
+  }, [fontError]);
+
   // Hard ceiling: if fonts or session check take longer than 3s, render anyway.
   // Protects against hangs on review devices with no prior app state.
   useEffect(() => {
     const timer = setTimeout(() => {
       setForceReady(true);
-      Sentry.captureMessage('[Checkpoint 4] forceReady timeout fired (3s elapsed)');
+      logCheckpoint('[6] forceReady timeout fired (3s elapsed)', { fontsLoaded, sessionChecked });
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -224,7 +258,7 @@ function App() {
   // initIAP is async — use .catch() so errors are logged without swallowing them
   // and without blocking the component lifecycle.
   useEffect(() => {
-    initIAP().catch(e => console.warn('initIAP error', e));
+    initIAP().catch(e => logError('[7] initIAP failed', e));
 
     return () => {
       try {
@@ -239,7 +273,7 @@ function App() {
     let isMounted = true;
 
     const bootstrap = async () => {
-      console.log('[App] Bootstrap starting');
+      logCheckpoint('[8] Bootstrap starting (session load)');
       try {
         const safeSession = await loadSafeSession();
 
@@ -254,8 +288,9 @@ function App() {
 
         if (!isMounted) return;
         setSession(safeSession);
+        logCheckpoint('[9] Bootstrap complete', { hasSession: !!safeSession });
       } catch (e) {
-        console.warn('Bootstrap failed:', e?.message || e);
+        logError('[8a] Bootstrap failed', e);
         if (!isMounted) return;
         setSession(null);
       } finally {
@@ -303,6 +338,9 @@ function App() {
   useEffect(() => {
     if ((fontsReady && sessionChecked) || forceReady) {
       ExpoSplashScreen.hideAsync().catch(() => {});
+      logCheckpoint('[10] Native splash hidden, rendering real UI', {
+        fontsReady, sessionChecked, forceReady, hasSession: !!session,
+      });
     }
   }, [fontsReady, sessionChecked, forceReady]);
 
@@ -311,23 +349,35 @@ function App() {
   }
 
   return (
+    <NavigationContainer linking={linking}>
+      {session
+        ? (
+          // Suspense fallback keeps showing SplashScreen while AppNavigator's
+          // lazy chunk (and its heavy dependency tree) loads for the first time.
+          <Suspense fallback={<SplashScreen />}>
+            <AppNavigator key={session.user.id} />
+          </Suspense>
+        )
+        : <AuthStack />
+      }
+    </NavigationContainer>
+  );
+}
+
+// ─── AppRoot ────────────────────────────────────────────────────────────────
+// Thin wrapper with NO hooks and NO logic of its own — its only job is to
+// put AppErrorBoundary directly around AppInner so a synchronous render
+// crash anywhere inside (fonts, session, navigation) is always caught. Keep
+// it this thin; any hook added here would reintroduce the exact gap this
+// restructure fixes.
+function AppRoot() {
+  return (
     <AppErrorBoundary>
-      <NavigationContainer linking={linking}>
-        {session
-          ? (
-            // Suspense fallback keeps showing SplashScreen while AppNavigator's
-            // lazy chunk (and its heavy dependency tree) loads for the first time.
-            <Suspense fallback={<SplashScreen />}>
-              <AppNavigator key={session.user.id} />
-            </Suspense>
-          )
-          : <AuthStack />
-        }
-      </NavigationContainer>
+      <AppInner />
     </AppErrorBoundary>
   );
 }
 
 // Sentry.wrap adds automatic breadcrumbs (navigation, touches) leading up to
 // a crash, so the report shows what the user did right before the white screen.
-export default Sentry.wrap(App);
+export default Sentry.wrap(AppRoot);
