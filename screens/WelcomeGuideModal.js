@@ -1,5 +1,5 @@
 // screens/WelcomeGuideModal.js
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -9,8 +9,9 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { colors, typography, spacing, radii, tokens } from './theme';
-import { buyPremium } from '../lib/iap'; 
+import { buyPremium, buyPremiumAnnual, getProducts, PRODUCT_ID_MONTHLY, PRODUCT_ID_ANNUAL } from '../lib/iap';
 
 const { height } = Dimensions.get('window');
 
@@ -106,6 +107,25 @@ export default function WelcomeGuideModal({
   onGoToRoadmap,
   roadmapKey,
 }) {
+  const navigation = useNavigation();
+  const [monthlyPrice, setMonthlyPrice] = useState(null);
+  const [annualPrice, setAnnualPrice]   = useState(null);
+  const [selectedPlan, setSelectedPlan] = useState('annual');
+
+  // Fetch live prices from the store so they can be shown before purchase,
+  // as required by App Store guideline 3.1.2(c).
+  useEffect(() => {
+    if (!visible) return;
+    getProducts()
+      .then((list) => {
+        const m = list.find((x) => x.productId === PRODUCT_ID_MONTHLY);
+        const a = list.find((x) => x.productId === PRODUCT_ID_ANNUAL);
+        if (m) setMonthlyPrice(m.localizedPrice);
+        if (a) setAnnualPrice(a.localizedPrice);
+      })
+      .catch(() => {});
+  }, [visible]);
+
   const achievementBullets = useMemo(
     () =>
       ROADMAP_ACHIEVEMENTS[roadmapKey] || [
@@ -124,7 +144,11 @@ export default function WelcomeGuideModal({
   }, [roadmapKey]);
 
   const handleStartTrial = async () => {
-    await buyPremium();
+    if (selectedPlan === 'annual') {
+      await buyPremiumAnnual();
+    } else {
+      await buyPremium();
+    }
   };
 
   return (
@@ -200,6 +224,34 @@ export default function WelcomeGuideModal({
                 <Text style={styles.upgradeNote}>
                   Deeper support, more flexibility, more personalised.
                 </Text>
+
+                {/* ── Plan toggle ── */}
+                <View style={styles.planToggleRow}>
+                  {['annual', 'monthly'].map((planKey) => {
+                    const active = selectedPlan === planKey;
+                    const label  = planKey === 'annual' ? 'Annual' : 'Monthly';
+                    const price  = planKey === 'annual' ? annualPrice : monthlyPrice;
+                    const sub    = planKey === 'annual' ? 'Save vs monthly' : 'Billed monthly';
+                    return (
+                      <TouchableOpacity
+                        key={planKey}
+                        style={[styles.planOption, active && styles.planOptionActive]}
+                        onPress={() => setSelectedPlan(planKey)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={[styles.planOptionLabel, active && styles.planOptionLabelActive]}>
+                          {label}
+                        </Text>
+                        <Text style={[styles.planOptionPrice, active && styles.planOptionPriceActive]}>
+                          {price ? `${price}/${planKey === 'annual' ? 'yr' : 'mo'}` : '—'}
+                        </Text>
+                        <Text style={[styles.planOptionSub, active && styles.planOptionSubActive]}>
+                          {sub}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
 
               {/* CTA buttons */}
@@ -210,8 +262,30 @@ export default function WelcomeGuideModal({
                   activeOpacity={0.85}
                 >
                   <Text style={styles.buttonTrialText}>7 days free Premium trial</Text>
-                  <Text style={styles.buttonTrialSub}>Automatically renews, but you can cancel at any time</Text>
+                  <Text style={styles.buttonTrialSub}>
+                    {selectedPlan === 'annual'
+                      ? `Premium (Annual)${annualPrice ? ` · Then ${annualPrice}/year` : ''}`
+                      : `Premium (Monthly)${monthlyPrice ? ` · Then ${monthlyPrice}/month` : ''}`}
+                    {' '}· Automatically renews, but you can cancel at any time
+                  </Text>
                 </TouchableOpacity>
+
+                {/* Legal links — required by Apple */}
+                <View style={styles.legalRow}>
+                  <TouchableOpacity
+                    onPress={() => { onClose?.(); navigation.navigate('TermsOfService'); }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.legalLink}>Terms of Use</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.legalSep}>·</Text>
+                  <TouchableOpacity
+                    onPress={() => { onClose?.(); navigation.navigate('PrivacyPolicy'); }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.legalLink}>Privacy Policy</Text>
+                  </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity
                   style={[styles.button, styles.buttonPrimary]}
@@ -473,6 +547,61 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
 
+  // Plan toggle — inside the Premium linen card
+  planToggleRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+
+  planOption: {
+    flex: 1,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    borderColor: colors.roseTint30,
+    backgroundColor: colors.warmWhite,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+
+  planOptionActive: {
+    backgroundColor: colors.deepRose,
+    borderColor: colors.deepRose,
+  },
+
+  planOptionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.ink,
+    marginBottom: 2,
+  },
+
+  planOptionLabelActive: {
+    color: colors.warmWhite,
+  },
+
+  planOptionPrice: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.deepRose,
+    marginBottom: 2,
+  },
+
+  planOptionPriceActive: {
+    color: colors.warmWhite,
+  },
+
+  planOptionSub: {
+    fontSize: 9,
+    fontWeight: '400',
+    color: colors.caption,
+  },
+
+  planOptionSubActive: {
+    color: colors.warmWhite,
+    opacity: 0.8,
+  },
+
   // Bullet pip — dustyRose (upgradeBulletPip)
   pip: {
     width: 5,
@@ -551,6 +680,28 @@ const styles = StyleSheet.create({
     color: colors.warmWhite,
     opacity: 0.75,
     letterSpacing: 0.2,
+    textAlign: 'center',
+  },
+
+  legalRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+
+  legalLink: {
+    fontSize: 11,
+    color: colors.clay,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
+
+  legalSep: {
+    fontSize: 11,
+    color: colors.caption,
   },
 
 });

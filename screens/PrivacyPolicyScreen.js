@@ -26,7 +26,11 @@ const SECTIONS = [
   },
   {
     title: '2. Information We Collect',
-    body: `We collect information you provide directly to us, including:\n\n• Account information: your name, email address, and password when you register\n• Profile data: your selected roadmap, time commitment preferences, and progress milestones\n• User-generated content: reflections, check-ins, and community posts you submit\n• Communications: messages you send us, including feedback and support requests\n\nWe also collect certain information automatically when you use the App, including device information, usage data, and crash reports to help us improve the App.`,
+    body: `We collect information you provide directly to us, including:\n\n• Account information: your name, email address, and password when you register\n• Profile data: your selected roadmap, time commitment preferences, and progress milestones\n• User-generated content: reflections, check-ins, mood and gratitude entries, and community posts you submit\n• Communications: messages you send us, including feedback and support requests\n\nWe also collect certain information automatically when you use the App, including device information, usage data, and crash reports to help us improve the App.\n\nIf you choose to add a profile photo, it is stored locally on your device only and is not uploaded to our servers.`,
+  },
+  {
+    title: '2a. Mood & Wellbeing Data',
+    body: `As part of the App's daily reflection feature, you may optionally record a mood rating and gratitude notes alongside your written reflections. This data is used solely to power your personal reflection history within the App and is never used for advertising or shared with third parties.\n\nThis information is not a substitute for professional medical or psychological advice — see Section 10 of our Terms of Service for more detail.`,
   },
   {
     title: '3. How We Use Your Information',
