@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.reinventionedit.app",
-      "buildNumber": "58",
+      "buildNumber": "66",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "SentryDSN": "https://beab71e11cd91a740626271fa86cc054@o4511717414862848.ingest.de.sentry.io/4511717419057232",
