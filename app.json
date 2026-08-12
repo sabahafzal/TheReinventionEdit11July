@@ -32,7 +32,7 @@
 
     "android": {
       "package": "com.reinventionedit.app",
-      "versionCode": 10,
+      "versionCode": 12,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Logo/TREHvid.png",
         "backgroundColor": "#FFFFFF"
@@ -52,6 +52,7 @@
     "plugins": [
       "expo-asset",
       "expo-font",
+      "./plugins/withAndroidIapFlavor.js",
       [
         "expo-build-properties",
         {
