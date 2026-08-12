@@ -5,10 +5,14 @@ dist
 web-build
 
 # Native build artifacts (EAS regenerates these on the cloud builder)
-android/build
-android/app/build
-android/.gradle
-android/.idea
+#
+# android/ is excluded wholesale (not just build/) so EAS always regenerates it
+# fresh via `expo prebuild` and picks up config plugins like withAndroidIapFlavor,
+# instead of skipping prebuild because a stale local android/ folder was uploaded.
+android/
+
+# iOS is left as artifact-level exclusions only — unchanged, since iOS builds
+# are already working and don't need the same fix.
 ios/Pods
 ios/build
 ios/DerivedData
